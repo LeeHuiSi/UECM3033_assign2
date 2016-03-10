@@ -1,25 +1,41 @@
 import numpy as np
+import scipy.linalg
 #Your optional code here
 #You can import some modules or create additional functions
 
-def lu(A, b):
-    sol = []
+def lu(A,b):
     # Edit here to implement your code
+    LU = scipy.linalg.lu_factor(A)
+    sol = scipy.linalg.lu_solve(LU,b)
+
     return list(sol)
 
 def sor(A, b):
-    sol = []
-    # Edit here to implement your code
+    L = -1*np.tril(A,-1)
+    D = np.diag(np.diag(A))
+    U = -1*np.triu(A,1)
+    
+    K_j = np.linalg.inv(D).dot(L+U)
+    SR = max(abs(i) for i in np.linalg.eigvals(K_j))
+    omega = 2 * (1-np.sqrt(1-SR**2)) / SR**2
+    
+    Q = D/omega - L
+    K = np.linalg.inv(Q).dot(Q-A)
+    c = np.linalg.inv(Q).dot(b)
+    sol = np.zeros_like(b)
+    for i in range(20): #iteration limit = 20
+        sol = K.dot(sol) + c
     return list(sol)
 
 def solve(A, b):
-    condition = True # State and implement your condition here
-    if condition:
-        print('Solve by lu(A,b)')
-        return lu(A,b)
-    else:
+    #condition = np.all(np.linalg.eigvals(A) > 0) # Check: eigenvalues are all positive
+    #condition = True   
+    if np.all(np.linalg.eigvals(A) > 0):
         print('Solve by sor(A,b)')
         return sor(A,b)
+    else:
+        print('Solve by lu(A,b)')
+        return lu(A,b)
 
 if __name__ == "__main__":
     ## import checker
